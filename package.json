@@ -1,0 +1,19 @@
+{
+  "name": "kirby-json-api",
+  "version": "1.0.0",
+  "type": "kirby-plugin",
+  "description": "Kirby CMS plugin that allows the easy creation of JSON APIs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lord-executor/kirby-json-api.git"
+  },
+  "keywords": [
+    "kirby"
+  ],
+  "author": "Lukas Angerer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lord-executor/kirby-json-api/issues"
+  },
+  "homepage": "https://github.com/lord-executor/kirby-json-api#readme"
+}
