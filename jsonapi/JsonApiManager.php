@@ -57,12 +57,33 @@ class JsonApiManager
 		}
 	}
 
-	protected function dispatch($controller, $action) {
-		return function () use ($controller, $action) {
+	protected function dispatch($controller, $action)
+	{
+		return function () use ($controller, $action)
+		{
 			$args = func_get_args();
-			$instance = new $controller();
-			$result = call_user_func_array([$instance, $action], $args);
-			return ($result instanceof KirbyResponse ? $result : KirbyResponse::json($result));
+			$callable = $action;
+			if (!empty($controller))
+			{
+				$instance = new $controller();
+				$callable = [$instance, $action];
+			}
+			$result = call_user_func_array($callable, $args);
+
+			//var_dump($result);
+
+			if ($result instanceof IJsonObject)
+			{
+				return KirbyResponse::json($result->toArray());
+			}
+			else if ($result instanceof KirbyResponse)
+			{
+				return $result;
+			}
+			else
+			{
+				return KirbyResponse::json($result);
+			}
 		};
 	}
 }

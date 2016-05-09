@@ -31,7 +31,7 @@ class JsonApiController
 		if ($page === false)
 			return KirbyResponse::error('Page not found', 404, ['id' => $id]);
 
-		return array_map(['Lar\JsonApi\JsonApiUtil', 'pageToJson'], array_values(iterator_to_array($page->children())));
+		return JsonApiUtil::pageToJson($page->children());
 	}
 
 	public function getFilteredChildren($id)
@@ -40,7 +40,7 @@ class JsonApiController
 		if ($page === false)
 			return KirbyResponse::error('Page not found', 404, ['id' => $id]);
 
-		return array_map(['Lar\JsonApi\JsonApiUtil', 'pageToJson'], array_values(iterator_to_array($page->children())));
+		return JsonApiUtil::pageToJson($page->children());
 	}
 
 	public function getFiles($id)
