@@ -32,7 +32,7 @@ class JsonApiManager
 			$apiRoutes[] = [
 				'method' => a::get($action, 'method', 'GET'),
 				'pattern' => $this->prefix . '/' . a::get($action, 'pattern'),
-				'action' => $this->dispatch(a::get($action, 'controller'), a::get($action, 'action')),
+				'action' => $this->dispatch(a::get($action, 'auth'), a::get($action, 'controller'), a::get($action, 'action')),
 			];
 		}
 
@@ -57,11 +57,19 @@ class JsonApiManager
 		}
 	}
 
-	protected function dispatch($controller, $action)
+	protected function dispatch($auth, $controller, $action)
 	{
-		return function () use ($controller, $action)
+		$manager = $this;
+
+		return function () use ($manager, $auth, $controller, $action)
 		{
 			$args = func_get_args();
+
+			if (($authResult = $manager->authenticate($auth, $args)) !== true)
+			{
+				return KirbyResponse::json('unauthorized', 401);
+			}
+
 			$callable = $action;
 			if (!empty($controller))
 			{
@@ -69,8 +77,6 @@ class JsonApiManager
 				$callable = [$instance, $action];
 			}
 			$result = call_user_func_array($callable, $args);
-
-			//var_dump($result);
 
 			if ($result instanceof IJsonObject)
 			{
@@ -85,5 +91,31 @@ class JsonApiManager
 				return KirbyResponse::json($result);
 			}
 		};
+	}
+
+	protected function authenticate($auth, $args)
+	{
+		if (empty($auth))
+		{
+			return true;
+		}
+
+		if (is_callable($auth))
+		{
+			if (!call_user_func_array($auth, $args))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			switch ($auth)
+			{
+				case 'logged-in':
+					return !empty(site()->user());
+			}
+		}
+
+		return false;
 	}
 }
