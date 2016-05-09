@@ -2,23 +2,38 @@
 
 namespace Lar\JsonApi;
 
+use Lar\JsonApi\PropertyTypes\StringProperty;
 
 class JsonApiUtil
 {
-	public static function pageToJson($page)
+	public static function pageToCollection($page)
 	{
 		$content = $page->content();
 
-		$data = [
+		$props = [
 			'id' => $page->id(),
 			'slug' => $page->slug(),
 		];
 
-		foreach ($content->fields() as $field) {
-			$data[$field] = $content->get($field)->value();
+		$fields = [];
+
+		foreach ($content->fields() as $name) {
+			$fields[] = new PageFieldInfo($content->get($name));
 		}
 
-		return $data;
+		return new PageFieldCollection($fields);
+	}
+
+	public static function pageToJson($page, $mappingOrVisitor = null)
+	{
+		$data = static::pageToCollection($page);
+
+		if ($mappingOrVisitor === null)
+		{
+			$visitor = new DefaultFieldVisitor();
+		}
+
+		return $data->toArray($visitor);
 	}
 
 	public static function filesToJson($page)
