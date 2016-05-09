@@ -20,7 +20,7 @@ class JsonApiUtil
 		$collection->addFields([
 			'id' => new StaticField($page->id()),
 			'url' => new StaticField($page->url()),
-			'slug' => new StaticField($page->slug()),
+			'uid' => new StaticField($page->uid()),
 		]);
 
 
