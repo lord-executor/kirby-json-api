@@ -65,7 +65,7 @@ class JsonApiManager
 		{
 			$args = func_get_args();
 
-			if (($authResult = $manager->authenticate($auth, $args)) !== true)
+			if (!$manager->authenticate($auth, $args))
 			{
 				return KirbyResponse::json('unauthorized', 401);
 			}
@@ -102,18 +102,7 @@ class JsonApiManager
 
 		if (is_callable($auth))
 		{
-			if (!call_user_func_array($auth, $args))
-			{
-				return false;
-			}
-		}
-		else
-		{
-			switch ($auth)
-			{
-				case 'logged-in':
-					return !empty(site()->user());
-			}
+			return call_user_func_array($auth, $args);
 		}
 
 		return false;

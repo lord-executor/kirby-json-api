@@ -4,8 +4,6 @@
   * using user's session language? language parameter?
   * selecting and returning content in a specific language
 * Authentication
-  * logged in user
-  * logged in user with role
   * basic auth
   * HMAC with pre-shared secret?
 * Configuration
