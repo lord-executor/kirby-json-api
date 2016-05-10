@@ -33,9 +33,10 @@ class JsonApiUtil
 
 	public static function filesToJson($page)
 	{
-		$collection = new JsonFieldCollection();
+		$files = [];
 
 		foreach ($page->files() as $file) {
+			$collection = new JsonFieldCollection();
 			$collection->addFields([
 				'url' => new StaticField($file->url()),
 				'name' => new StaticField($file->name()),
@@ -43,11 +44,13 @@ class JsonApiUtil
 				'size' => new StaticField($file->size()),
 				'niceSize' => new StaticField($file->niceSize()),
 				'mime' => new StaticField($file->mime()),
-				'type' => new StaticField($file->type),
+				'type' => new StaticField($file->type()),
 			]);
+
+			$files[] = $collection;
 		}
 
-		return $collection;
+		return new JsonListCollection($files);
 	}
 
 	public static function pageToNode($page, $fullTree = false)
@@ -58,7 +61,7 @@ class JsonApiUtil
 		}
 
 		$node = self::pageToJson($page);
-		$node->addFeild('files', new StaticField(self::filesToJson($page)));
+		$node->addField('files', new StaticField(self::filesToJson($page)));
 
 		if ($fullTree)
 		{
