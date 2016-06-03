@@ -9,6 +9,10 @@ class JsonApiUtil
 {
 	public static function pageToJson($page)
 	{
+		if (empty($page)) {
+			return null;
+		}
+
 		if ($page instanceof Iterator)
 		{
 			return new JsonListCollection(array_map(['self', 'pageToJson'], array_values(iterator_to_array($page))));
@@ -33,6 +37,10 @@ class JsonApiUtil
 
 	public static function filesToJson($page)
 	{
+		if (empty($page)) {
+			return null;
+		}
+
 		$files = [];
 
 		foreach ($page->files() as $file) {
@@ -55,6 +63,10 @@ class JsonApiUtil
 
 	public static function pageToNode($page, $fullTree = false)
 	{
+		if (empty($page)) {
+			return null;
+		}
+
 		if ($page instanceof Iterator)
 		{
 			return new JsonListCollection(array_map(['self', 'pageToNode'], array_values(iterator_to_array($page))));
