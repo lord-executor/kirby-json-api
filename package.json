@@ -1,5 +1,5 @@
 {
-  "name": "kirby-json-api",
+  "name": "jsonapi",
   "version": "1.0.0",
   "type": "kirby-plugin",
   "description": "Kirby CMS plugin that allows the easy creation of JSON APIs",
