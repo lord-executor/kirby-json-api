@@ -1,5 +1,5 @@
 # Introduction
-The Kirby JSON API plugin is a fairly simple layer on top of the existing Kirby infrastructure that provides a (read-only) JSON API to access the content tree from JavaScript and other external clients. It also provides some basic functionality for developers to easily add their own JSON-based APIs.
+The Kirby JSON API plugin is a fairly simple layer on top of the existing Kirby infrastructure that provides a language-aware (read-only) JSON API to access the content tree from JavaScript and other external clients. It also provides some basic functionality for developers to easily add their own JSON-based APIs.
 
 ## Built-in API
 > **Note**: The built-in API is disabled by default and has to be enabled first in the Kirby configuration as described below.
@@ -111,7 +111,7 @@ Example of the result returned by a call to the `tree` API with `/api/page/proje
 		},
 		{
 			"id": "projects\/project-c",
-			....
+			...
 		}
 	]
 }
@@ -130,8 +130,60 @@ Every addition to the basic `page` information is also available as a separate A
 * `[prefix]/children/[id]`: Returns an array of child pages of the given page including all of their fields (non-recursive).
 * `[prefix]/files/[id]`: Returns an array of all files associated with the given page.
 
-## Configuration
-
 ## Custom API Extensions
+Getting started with a custom API is really quite straight forward. All you need is a Kirby plugin (that can be an existing plugin or a new one) where you can create a file called `jsonapi.extension.php`. The JSON API plugin looks for files with that name during its initialization and loads them automatically. In this extension file, you can now simply declare your API like this
 
-### Authentication Options
+```php
+<?php
+
+jsonapi()->register([
+	// api/custom/_name_/_value_
+	[
+		'method' => 'GET',
+		'pattern' => "custom/(:any)/(:num)",
+		'action' => function ($any, $num) {
+			return ['msg' => "got $any with value $num"];
+		},
+	],
+]);
+```
+
+That's it. You've got yourself an API which you can call with `/api/custom/me/42`.
+
+### Registering routes
+The global `jsonapi()` function returns an instance of the API manager whose `register($actions)` method takes an array of API route definitions.
+
+### Routing
+The JSON API is based on Kirby's [routing mechanism](https://getkirby.com/docs/developer-guide/advanced/routing) and adds some more options and a bit of framework functionality to simplify working with JSON.
+
+The route options `method`, `pattern` and `action` are essentially taken as-is from the Kirby routing system, so please check [that documentation](https://getkirby.com/docs/developer-guide/advanced/routing) for more details.
+
+### Actions
+An action can be any [PHP callable](http://php.net/manual/en/language.types.callable.php) just like in any other Kirby route, but additionally, you can also use the _controller_ syntax in your route definitions.
+
+```php
+[
+	// ...
+	'controller' => 'MyController',
+	'action' => 'myAction',
+	// ...
+]
+```
+
+The _controller_ class will be instantiated before the action is invoked. The controller must therefore have a parameterless constructor. Once instantiated, the action is invoked on the controller.
+
+Normally, your custom API actions will return a (quite possibly nested) PHP array or PHP scalar which will be converted to a JSON response automatically. The result of an API action can also be any valid `KirbyResponse` object in which case Kirby's default response handling kicks in. As a middle ground, you can also return any object that implements the `Lar\JsonApi\IJsonObject` interface which gives you full control over how your objects will be serialized to JSON.
+
+If your API is dealing with Kirby page objects, you can also use the helper objects and utilities that come with the JSON API plugin to craft your response. See the section on working with pages below.
+
+### Authentication
+The `auth` option of an API route definition ensures that unauthorized requests are handled with an HTTP 401 response. If set, the `auth` option has to be a PHP callable that explicitly returns `true` if the request has been authorized or `false` if the request should be blocked. The authorization function receives the same arguments as the controller.
+
+The JSON API plugin provides the following pre-defined authorization handlers (see `Lar\JsonApi\JsonApiAuth` for more details):
+* `Lar\JsonApi\JsonApiAuth::isLoggedIn()`: returns an auth handler that returns `true` if and only if the user making the request is logged in.
+* `Lar\JsonApi\JsonApiAuth::isAdmin()`: returns an auth handler that returns `true` if and only if the user making the request is logged in and has the `admin` role.
+* `Lar\JsonApi\JsonApiAuth::isUserWithRole($role = null)`: returns an auth handler that returns `true` if and only if the user making the request is logged in and has the role that is provided as the function argument.
+
+### Language
+
+### Working with Pages
