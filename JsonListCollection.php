@@ -5,7 +5,7 @@ namespace Lar\JsonApi;
 use Exception;
 
 
-class JsonListCollection implements IJsonObject
+class JsonListCollection implements IJsonMap
 {
 	private $list;
 
@@ -18,7 +18,7 @@ class JsonListCollection implements IJsonObject
 	{
 		foreach ($this->list as $value)
 		{
-			if ($value instanceof IJsonObject) {
+			if ($value instanceof IJsonMap) {
 				$value->mapField($key, $extractorFn);
 			}
 		}
@@ -30,7 +30,7 @@ class JsonListCollection implements IJsonObject
 	{
 		foreach ($this->list as $value)
 		{
-			if ($value instanceof IJsonObject)
+			if ($value instanceof IJsonMap)
 			{
 				$value->selectFields($names);
 			}

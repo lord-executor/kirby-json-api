@@ -5,7 +5,7 @@ namespace Lar\JsonApi;
 use Exception;
 
 
-class JsonFieldCollection implements IJsonObject
+class JsonFieldCollection implements IJsonMap
 {
 	private $map = [];
 
