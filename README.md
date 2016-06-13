@@ -1,4 +1,4 @@
-# Introduction
+# JSON API Plugin
 The Kirby JSON API plugin is a fairly simple layer on top of the existing Kirby infrastructure that provides a language-aware (read-only) JSON API to access the content tree from JavaScript and other external clients. It also provides some basic functionality for developers to easily add their own JSON-based APIs.
 
 ## Built-in API
@@ -172,7 +172,7 @@ An action can be any [PHP callable](http://php.net/manual/en/language.types.call
 
 The _controller_ class will be instantiated before the action is invoked. The controller must therefore have a parameterless constructor. Once instantiated, the action is invoked on the controller.
 
-Normally, your custom API actions will return a (quite possibly nested) PHP array or PHP scalar which will be converted to a JSON response automatically. The result of an API action can also be any valid `KirbyResponse` object in which case Kirby's default response handling kicks in. As a middle ground, you can also return any object that implements the `Lar\JsonApi\IJsonObject` interface which gives you full control over how your objects will be serialized to JSON.
+Normally, your custom API actions will return a (quite possibly nested) PHP array or PHP scalar which will be converted to a JSON response automatically. The result of an API action can also be any valid Kirby `response` object in which case Kirby's default response handling kicks in. As a middle ground, you can also return any object that implements the `Lar\JsonApi\IJsonObject` interface which gives you full control over how your objects will be serialized to JSON.
 
 If your API is dealing with Kirby page objects, you can also use the helper objects and utilities that come with the JSON API plugin to craft your response. See the section on working with pages below.
 
@@ -207,3 +207,118 @@ Besides a callback, the `lang` option can also be one of the following strings:
 * `visitor`: The language determined for the current visitor. See https://getkirby.com/docs/cheatsheet/site/visitor-language
 
 ### Working with Pages
+The built-in API is fairly generic and may be too much or too little depending on your needs. If you are working with Kirby pages you might want some more control over what fields are included or how field values are returned. The utility functions around JsonApiUtil and the JsonFieldCollection/JsonListCollection should allow you to do just that.
+
+#### Using JsonApiUtil
+Before you start _customizing_ the returned result, you probably want to get started by converting your Kirby page(s) to something more JSON-friendly.
+
+* `Lar\JsonApi\JsonApiUtil::pageToJson($page)`  
+  Converts the given Kirby page object or collection of pages to an instance of `Lar\JsonApi\JsonFieldCollection` or `Lar\JsonApi\JsonListCollection` respecitvely. In the case of a page collection, the result list collection object will contain one field collection for each page.
+* `Lar\JsonApi\JsonApiUtil::pageToNode($page, $fullTree = false)`  
+  Works on page objects or a collection of pages just like `pageToJson`, but it adds the page's files and children to the returned object as well. If the `$fullTree` parameter is set to true, children are returned recursively.
+
+#### Selecting and Mapping Fields
+Once you have a `JsonListCollection` or `JsonFieldCollection` object, both of which implement the `IJsonMap` interface, you can pick the fields you want to return with the `selectFields($names)` method:
+
+```php
+return JsonApiUtil::pageToJson($myPage)
+	->selectFields(['id', 'url', 'title', 'text');
+```
+
+Only fields included in this list will be returned.
+
+By default, the page fields are returned as-is, in the form of textual data. Since you might not always want to push the burden of processing the fields to the client, you can use the `mapField($key, $extractorFn)` method:
+
+```php
+return JsonApiUtil::pageToJson($myPage)
+	// the 'location' field contains a select-type link to another page
+	->mapField('location', function ($field) {
+		// the field contains the _id_ of the target page, so we can just
+		// use Kirby's 'toPage' method.
+		$target = $field->toPage();
+		// always watch your false/null values
+		return $target ? JsonApiUtil::pageToJson($target) : null;
+	})
+	// the 'index' field contains a number and we would like the returned JSON
+	// to contain a number too (instead of a string that happens to contain digits)
+	->mapField('index', function ($field) {
+		return intval($field->value());
+	});
+```
+
+The `$extractorFn` receives the collection's `$field` definition as its argument. In the case of a Kirby page that has been converted to a JSON list/field collection, that definition is the field instance. This means that all the [Kirby Field Methods](https://getkirby.com/docs/cheatsheet#field-methods) are available to you.
+
+When one of these functions is called on a list collection, then the mapping or selection is applied to all field collections in that list (non-recursively).
+
+# Examples
+
+## Custom API with all Bells and Whistles
+```php
+<?php
+
+use Lar\JsonApi\JsonApiUtil;
+use response as KirbyResponse;
+
+class SettingsController
+{
+	public function getSettings($name)
+	{
+		$page = page('meta/settings')->find($name);
+
+		if ($page === false)
+			return KirbyResponse::error('Page not found', 404, ['name' => $name]);
+
+		return JsonApiUtil::pageToJson($page)
+			->selectFields(['depth', 'home'])
+			->mapField('depth', function ($field) {
+				return intval($field->value());
+			})
+			->mapField('home', function ($field) {
+				$target = $field->toPage();
+				return $target ? JsonApiUtil::pageToJson($target) : null;
+			});
+	}
+}
+
+jsonapi()->register([
+	// api/custom/settings/_name_
+	[
+		'method' => 'GET',
+		'pattern' => "custom/settings/(:any)",
+		// only allow access if 'name' does not contain slashes
+		'auth' => function ($name) { return strpos($name, '/') === false; },
+		// force language to English
+		'lang' => function () { return 'en'; },
+		'controller' => 'SettingsController',
+		'action' => 'getSettings',
+	],
+]);
+```
+
+## Inline Action
+```php
+<?php
+
+jsonapi()->register([
+	// api/data
+	[
+		'method' => 'GET',
+		'pattern' => 'data',
+		'action' => function () {
+			$projects = page('projects')->children();
+			$files = [];
+
+			// just get all the files for each project
+			JsonApiUtil::pageToNode($projects)
+				->mapField('files', function ($field) use (&$files) {
+					$files = array_merge($files, $field->getValue()->toArray());
+				})
+				// this is needed to trigger the serialization which will call
+				// the field mapping function
+				->toArray();
+
+			return $files;
+		},
+	],
+]);
+```
