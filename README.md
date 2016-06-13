@@ -184,6 +184,26 @@ The JSON API plugin provides the following pre-defined authorization handlers (s
 * `Lar\JsonApi\JsonApiAuth::isAdmin()`: returns an auth handler that returns `true` if and only if the user making the request is logged in and has the `admin` role.
 * `Lar\JsonApi\JsonApiAuth::isUserWithRole($role = null)`: returns an auth handler that returns `true` if and only if the user making the request is logged in and has the role that is provided as the function argument.
 
+**Example**
+```php
+[
+	// ...
+	// infamous "I hate Mondays" API that cannot be used on Mondays
+	'auth' => function () {
+		$now = new DateTime();
+		return ($now->format('N') !== '1');
+	},
+	// ...
+]
+```
+
 ### Language
+Language handling for APIs can be quite tricky, so like everything else, this aspect is customizable. Adding the `lang` option to your routes allows you to specify a language selection handler which receives the same arguments as the controller and returns the language code of the language that will be used to fetch data from Kirby.
+
+Besides a callback, the `lang` option can also be one of the following strings:
+* `session` (default): The session's current browsing language. See https://getkirby.com/docs/cheatsheet/site/session-language.
+* `default`: The site's default language. See https://getkirby.com/docs/cheatsheet/site/default-language
+* `detected`: The user's detected language. See https://getkirby.com/docs/cheatsheet/site/detected-language
+* `visitor`: The language determined for the current visitor. See https://getkirby.com/docs/cheatsheet/site/visitor-language
 
 ### Working with Pages
