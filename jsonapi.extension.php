@@ -21,7 +21,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 	}
 
 	jsonapi()->register([
-		// api/page/_uri_
+		// api/page/_id_
 		[
 			'auth' => $auth,
 			'method' => 'GET',
@@ -29,7 +29,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 			'controller' => 'Lar\JsonApi\JsonApiController',
 			'action' => 'getPage',
 		],
-		// api/child-ids/_uri_
+		// api/child-ids/_id_
 		[
 			'auth' => $auth,
 			'method' => 'GET',
@@ -37,7 +37,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 			'controller' => 'Lar\JsonApi\JsonApiController',
 			'action' => 'getChildIds',
 		],
-		// api/children/_uri_
+		// api/children/_id_
 		[
 			'auth' => $auth,
 			'method' => 'GET',
@@ -45,7 +45,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 			'controller' => 'Lar\JsonApi\JsonApiController',
 			'action' => 'getChildren',
 		],
-		// api/files/_uri_
+		// api/files/_id_
 		[
 			'auth' => $auth,
 			'method' => 'GET',
@@ -53,7 +53,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 			'controller' => 'Lar\JsonApi\JsonApiController',
 			'action' => 'getFiles',
 		],
-		// api/node/_uri_
+		// api/node/_id_
 		[
 			'auth' => $auth,
 			'method' => 'GET',
@@ -61,7 +61,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 			'controller' => 'Lar\JsonApi\JsonApiController',
 			'action' => 'getNode',
 		],
-		// api/tree/_uri_
+		// api/tree/_id_
 		[
 			'auth' => $auth,
 			'method' => 'GET',
@@ -69,7 +69,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 			'controller' => 'Lar\JsonApi\JsonApiController',
 			'action' => 'getTree',
 		],
-		// // api/filter/_uri_?filter=_filter-expr_
+		// // api/filter/_id_?filter=_filter-expr_
 		// [
 		// 	'auth' => $auth,
 		// 	'method' => 'GET',
