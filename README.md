@@ -67,7 +67,7 @@ c::set('jsonapi.built-in.auth', false);
 There are plenty more authentication options available (those are described below) and you can also implement your own. Be aware that the _configuration_ option `jsonapi.built-in.auth` expects an _authentication provider_ function - that is a function that returns the actual authentication function. This is to work around the bootstrapping issue where the plugin providing the authentication function isn't actually loaded yet. The _provider_ function is invoked when the built-in API is registered, at which point all the functionality of the JSON API plugin are available.
 
 ### API Path prefix
-All registerd API controllers are made available under **one** path prefix that defaults to `api`, so all registerd URL patterns are automatically prefixed with this value. You can of course change this prefix in the configuration:
+All registered API controllers are made available under **one** path prefix that defaults to `api`, so all registered URL patterns are automatically prefixed with this value. You can of course change this prefix in the configuration:
 
 ```php
 c::set('jsonapi.prefix', 'myapi');
@@ -217,7 +217,7 @@ If your API is dealing with Kirby page objects, you can also use the helper obje
 ## Authentication
 The `auth` option of an API route definition ensures that unauthorized requests are handled with an HTTP 401 response. If set, the `auth` option has to be a PHP callable that explicitly returns `true` if the request has been authorized or `false` if the request should be blocked. The authorization function receives the same arguments as the controller.
 
-The JSON API plugin provides the following pre-defined authorization handlers (see `Lar\JsonApi\JsonApiAuth` for more details):
+The JSON API plugin provides the following predefined authorization handlers (see `Lar\JsonApi\JsonApiAuth` for more details):
 * `Lar\JsonApi\JsonApiAuth::isLoggedIn()`: returns an auth handler that returns `true` if and only if the user making the request is logged in.
 * `Lar\JsonApi\JsonApiAuth::isAdmin()`: returns an auth handler that returns `true` if and only if the user making the request is logged in and has the `admin` role.
 * `Lar\JsonApi\JsonApiAuth::isUserWithRole($role = null)`: returns an auth handler that returns `true` if and only if the user making the request is logged in and has the role that is provided as the function argument.
@@ -250,9 +250,9 @@ The built-in API is fairly generic and may be too much or too little depending o
 ### Using JsonApiUtil
 Before you start _customizing_ the returned result, you probably want to get started by converting your Kirby page(s) to something more JSON-friendly.
 
-* `Lar\JsonApi\JsonApiUtil::pageToJson($page)`  
-  Converts the given Kirby page object or collection of pages to an instance of `Lar\JsonApi\JsonFieldCollection` or `Lar\JsonApi\JsonListCollection` respecitvely. In the case of a page collection, the result list collection object will contain one field collection for each page.
-* `Lar\JsonApi\JsonApiUtil::pageToNode($page, $fullTree = false)`  
+* `Lar\JsonApi\JsonApiUtil::pageToJson($page)`
+  Converts the given Kirby page object or collection of pages to an instance of `Lar\JsonApi\JsonFieldCollection` or `Lar\JsonApi\JsonListCollection` respectively. In the case of a page collection, the result list collection object will contain one field collection for each page.
+* `Lar\JsonApi\JsonApiUtil::pageToNode($page, $fullTree = false)`
   Works on page objects or a collection of pages just like `pageToJson`, but it adds the page's files and children to the returned object as well. If the `$fullTree` parameter is set to true, children are returned recursively.
 
 ### Selecting and Mapping Fields
