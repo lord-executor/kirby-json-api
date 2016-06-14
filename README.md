@@ -179,12 +179,14 @@ jsonapi()->register([
 	[
 		'method' => 'GET',
 		'pattern' => "custom/(:any)/(:num)",
-		'action' => function ($any, $num) {
-			return ['msg' => "got $any with value $num"];
+		'action' => function ($name, $value) {
+			return ['msg' => "got $name with value $value"];
 		},
 	],
 ]);
 ```
+
+**Note:** For the route pattern parameters see https://getkirby.com/docs/developer-guide/advanced/routing.
 
 That's it. You've got yourself an API which you can call with `/api/custom/me/42`.
 
