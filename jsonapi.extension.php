@@ -2,54 +2,80 @@
 
 require_once(__DIR__ . '/JsonApiController.php');
 
-jsonapi()->register([
-	// api/page/_uri_
-	[
-		'method' => 'GET',
-		'pattern' => "page/(:all)",
-		'controller' => 'Lar\JsonApi\JsonApiController',
-		'action' => 'getPage',
-	],
-	// api/child-ids/_uri_
-	[
-		'method' => 'GET',
-		'pattern' => "child-ids/(:all)",
-		'controller' => 'Lar\JsonApi\JsonApiController',
-		'action' => 'getChildIds',
-	],
-	// api/children/_uri_
-	[
-		'method' => 'GET',
-		'pattern' => "children/(:all)",
-		'controller' => 'Lar\JsonApi\JsonApiController',
-		'action' => 'getChildren',
-	],
-	// api/filter/_uri_?filter=_filter-expr_
-	[
-		'method' => 'GET',
-		'pattern' => "filter/(:all)",
-		'controller' => 'Lar\JsonApi\JsonApiController',
-		'action' => 'getFilteredChildren',
-	],
-	// api/files/_uri_
-	[
-		'method' => 'GET',
-		'pattern' => "files/(:all)",
-		'controller' => 'Lar\JsonApi\JsonApiController',
-		'action' => 'getFiles',
-	],
-	// api/node/_uri_
-	[
-		'method' => 'GET',
-		'pattern' => "node/(:all)",
-		'controller' => 'Lar\JsonApi\JsonApiController',
-		'action' => 'getNode',
-	],
-	// api/tree/_uri_
-	[
-		'method' => 'GET',
-		'pattern' => "tree/(:all)",
-		'controller' => 'Lar\JsonApi\JsonApiController',
-		'action' => 'getTree',
-	],
-]);
+if (c::get('jsonapi.built-in.enabled', false))
+{
+	$auth = c::get('jsonapi.built-in.auth', null);
+
+	if ($auth === false)
+	{
+		$auth = null;
+	}
+	else if ($auth)
+	{
+		// invoke the auth configuration provider
+		$auth = $auth();
+	}
+	else
+	{
+		$auth = Lar\JsonApi\JsonApiAuth::isAdmin();
+	}
+
+	jsonapi()->register([
+		// api/page/_id_
+		[
+			'auth' => $auth,
+			'method' => 'GET',
+			'pattern' => "page/(:all)",
+			'controller' => 'Lar\JsonApi\JsonApiController',
+			'action' => 'getPage',
+		],
+		// api/child-ids/_id_
+		[
+			'auth' => $auth,
+			'method' => 'GET',
+			'pattern' => "child-ids/(:all)",
+			'controller' => 'Lar\JsonApi\JsonApiController',
+			'action' => 'getChildIds',
+		],
+		// api/children/_id_
+		[
+			'auth' => $auth,
+			'method' => 'GET',
+			'pattern' => "children/(:all)",
+			'controller' => 'Lar\JsonApi\JsonApiController',
+			'action' => 'getChildren',
+		],
+		// api/files/_id_
+		[
+			'auth' => $auth,
+			'method' => 'GET',
+			'pattern' => "files/(:all)",
+			'controller' => 'Lar\JsonApi\JsonApiController',
+			'action' => 'getFiles',
+		],
+		// api/node/_id_
+		[
+			'auth' => $auth,
+			'method' => 'GET',
+			'pattern' => "node/(:all)",
+			'controller' => 'Lar\JsonApi\JsonApiController',
+			'action' => 'getNode',
+		],
+		// api/tree/_id_
+		[
+			'auth' => $auth,
+			'method' => 'GET',
+			'pattern' => "tree/(:all)",
+			'controller' => 'Lar\JsonApi\JsonApiController',
+			'action' => 'getTree',
+		],
+		// // api/filter/_id_?filter=_filter-expr_
+		// [
+		// 	'auth' => $auth,
+		// 	'method' => 'GET',
+		// 	'pattern' => "filter/(:all)",
+		// 	'controller' => 'Lar\JsonApi\JsonApiController',
+		// 	'action' => 'getFilteredChildren',
+		// ],
+	]);
+}

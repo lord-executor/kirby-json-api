@@ -14,6 +14,16 @@ class StaticField extends JsonField
 		$this->metaData = $metaData;
 	}
 
+	public function getValue()
+	{
+		return $this->value;
+	}
+
+	public function getMetaData()
+	{
+		return $this->metaData;
+	}
+
 	protected function getDefaultExtractor()
 	{
 		return function ($field) {
