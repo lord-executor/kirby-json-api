@@ -39,7 +39,7 @@ But seriously;
 
 If you answered any of the above questions with "yes", then this plugin is likely something you could benefit from.
 
-# Built-in API
+# Built-In API
 > **Note**: The built-in API is disabled by default and has to be enabled first in the Kirby configuration as described below.
 
 ## Configuring the Built-In API
@@ -66,7 +66,7 @@ c::set('jsonapi.built-in.auth', false);
 
 There are plenty more authentication options available (those are described below) and you can also implement your own. Be aware that the _configuration_ option `jsonapi.built-in.auth` expects an _authentication provider_ function - that is a function that returns the actual authentication function. This is to work around the bootstrapping issue where the plugin providing the authentication function isn't actually loaded yet. The _provider_ function is invoked when the built-in API is registered, at which point all the functionality of the JSON API plugin are available.
 
-### API Path prefix
+### API Path Prefix
 All registered API controllers are made available under **one** path prefix that defaults to `api`, so all registered URL patterns are automatically prefixed with this value. You can of course change this prefix in the configuration:
 
 ```php
@@ -155,7 +155,7 @@ Example of the result returned by a call to the `tree` API with `/api/page/proje
 }
 ```
 
-#### Meta fields
+#### Meta Fields
 These fields are automatically added to the response of every page.
 * `id`: see https://getkirby.com/docs/cheatsheet/page/id
 * `url`: see https://getkirby.com/docs/cheatsheet/page/url
@@ -188,7 +188,7 @@ jsonapi()->register([
 
 That's it. You've got yourself an API which you can call with `/api/custom/me/42`.
 
-## Registering routes
+## Registering Routes
 The global `jsonapi()` function returns an instance of the API manager whose `register($actions)` method takes an array of API route definitions.
 
 ## Routing
@@ -290,7 +290,7 @@ When one of these functions is called on a list collection, then the mapping or 
 
 # Examples
 
-## Custom API with all Bells and Whistles
+## Custom API with All Bells and Whistles
 ```php
 <?php
 
