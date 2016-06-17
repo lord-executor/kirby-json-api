@@ -14,6 +14,7 @@ The Kirby JSON API plugin is a fairly simple layer on top of the existing Kirby 
   * [Language](#language)
   * [Working with Pages](#working-with-pages)
 * [Examples](#examples)
+* [Sponsors](#sponsors)
 
 ## Installation
 
@@ -376,3 +377,9 @@ jsonapi()->register([
 	],
 ]);
 ```
+
+# Sponsors
+
+![getunik.com Logo](http://getunik.com/themes/img/gu_logo.svg "getunik.com Logo")
+
+Development of this plugin was partially sponsored by [getunik.com](http://getunik.com/)
