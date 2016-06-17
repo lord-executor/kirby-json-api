@@ -1,6 +1,20 @@
 # JSON API Plugin
 The Kirby JSON API plugin is a fairly simple layer on top of the existing Kirby infrastructure that provides a language-aware, read-only (for now) JSON API to access the content tree from JavaScript and other external clients. It also provides some basic functionality for developers to easily add their own JSON-based APIs.
 
+## Table of Contents
+* [Installation](#installation)
+* [Who Should Use This?](#who-should-use-this)
+* [Built-In API](#built-in-api)
+  * [Configuring the Built-In API](#configuring-the-built-in-api)
+  * [Built-In API Features](#built-in-api-features)
+* [Custom API Extensions](#custom-api-extensions)
+  * [Registering Routes](#registering-routes)
+  * [Actions](#actions)
+  * [Authentication](#authentication)
+  * [Language](#language)
+  * [Working with Pages](#working-with-pages)
+* [Examples](#examples)
+
 ## Installation
 
 ### Using the KirbyCLI
