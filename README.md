@@ -13,6 +13,8 @@ The Kirby JSON API plugin is a fairly simple layer on top of the existing Kirby 
   * [Authentication](#authentication)
   * [Language](#language)
   * [Working with Pages](#working-with-pages)
+* [Using the API from JavaScript](#using-the-api-from-javascript)
+  * [Exposing some Kirby to JavaScript](#exposing-some-kirby-to-javascript)
 * [Examples](#examples)
 * [Sponsors](#sponsors)
 
@@ -304,6 +306,36 @@ return JsonApiUtil::pageToJson($myPage)
 The `$extractorFn` receives the collection's `$field` definition as its argument. In the case of a Kirby page that has been converted to a JSON list/field collection, that definition is the field instance. This means that all the [Kirby Field Methods](https://getkirby.com/docs/cheatsheet#field-methods) are available to you.
 
 When one of these functions is called on a list collection, then the mapping or selection is applied to all field collections in that list (non-recursively).
+
+# Using the API from JavaScript
+Usually you'll want to access the API from _somewhere_, that somewhere likely being JavaScript code. One of the first problems you'll likely run into is that of figuring out the right URLs for your API calls.
+* Relative URLs are kinda clunky and not to be recommended in this situation
+* Absolute paths make an assumption that your Kirby site is hosted under a specific path and may break with different environemtns
+* Full URIs are even more specific and will break if you have a test environment
+
+## Exposing some Kirby to JavaScript
+A good practice is to simply expose some of Kirby's settings to JavaScript in an easy-to-digest format like a JavaScript object. Add the following snippet to your main HTML header snippet - most Kirby pages tend to have one of those; the snippet should be included in all of your templates.
+
+```html
+<script type="text/javascript">
+	/**
+	 * Kirby JavaScript settings object. It contains settings and functions that JavaScript code
+	 * potentially needs to know about when dealing with Kirby
+	 */
+	window.Kirby = {
+		baseUrl: '<?php echo $site->url() ?>',
+		url: function (path) {
+			return this.baseUrl + (path && path[0] === '/' ? path : '/' + path);
+		},
+	};
+</script>
+```
+
+With this, it is now trivial to access your API without having to worry about the path your Kirby instance is hosted under. Just use the `url` function of the new Kirby object to build your actual URL like so:
+
+```javascript
+$.get(Kirby.url('/api/my/path')).then(...);
+```
 
 # Examples
 
