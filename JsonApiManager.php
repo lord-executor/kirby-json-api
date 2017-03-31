@@ -18,10 +18,12 @@ class JsonApiManager
 
 
 	protected $prefix;
+	protected $defaultLang;
 
 	public function __construct()
 	{
 		$this->prefix = c::get('jsonapi.prefix', 'api');
+		$this->defaultLang = JsonApiLang::fromQuery();
 	}
 
 	public function register($actions)
@@ -32,7 +34,7 @@ class JsonApiManager
 			$apiRoutes[] = [
 				'method' => a::get($action, 'method', 'GET'),
 				'pattern' => $this->prefix . '/' . a::get($action, 'pattern'),
-				'action' => $this->dispatch(a::get($action, 'auth'), a::get($action, 'controller'), a::get($action, 'action'), a::get($action, 'lang', 'session')),
+				'action' => $this->dispatch(a::get($action, 'auth'), a::get($action, 'controller'), a::get($action, 'action'), a::get($action, 'lang', $this->defaultLang)),
 			];
 		}
 
