@@ -71,6 +71,9 @@ class JsonApiManager
 				// make sure to set the site language for this request according to the 'lang'
 				// action setting, otherwise everything will be returned in the default language
 				$site->language = is_callable($lang) ? call_user_func_array($lang, $args) : $site->{$lang . 'Language'}();
+				if ($site->language === NULL) {
+					$site->language = $site->defaultLanguage();
+				}
 			}
 
 			if (!$manager->authenticate($auth, $args))
