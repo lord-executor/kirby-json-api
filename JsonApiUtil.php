@@ -2,7 +2,7 @@
 
 namespace Lar\JsonApi;
 
-use Iterator;
+use Traversable;
 
 
 class JsonApiUtil
@@ -13,7 +13,8 @@ class JsonApiUtil
 			return null;
 		}
 
-		if ($page instanceof Iterator)
+		// Actually a pages collection or other list of pages
+		if ($page instanceof Traversable)
 		{
 			return new JsonListCollection(array_map(['self', 'pageToJson'], array_values(iterator_to_array($page))));
 		}
@@ -30,6 +31,27 @@ class JsonApiUtil
 
 		foreach ($content->fields() as $field) {
 			$collection->addField($field, new PageField($content->get($field)));
+		}
+
+		return $collection;
+	}
+
+	public static function structureToJson($structure)
+	{
+		if (empty($structure)) {
+			return null;
+		}
+
+		$keys = $structure->keys();
+
+		if ($keys === range(0, count($keys) - 1)) {
+			return new JsonListCollection(array_map(['self', 'structureToJson'], array_values(iterator_to_array($structure))));
+		}
+
+		$collection = new JsonFieldCollection();
+
+		foreach ($structure as $key => $value) {
+			$collection->addField($key, new PageField($value));
 		}
 
 		return $collection;
@@ -67,7 +89,7 @@ class JsonApiUtil
 			return null;
 		}
 
-		if ($page instanceof Iterator)
+		if ($page instanceof Traversable)
 		{
 			return new JsonListCollection(array_map(['self', 'pageToNode'], array_values(iterator_to_array($page))));
 		}

@@ -20,7 +20,12 @@ class PageField extends JsonField
 	protected function getDefaultExtractor()
 	{
 		return function ($field) {
-			return $field->value();
+			$val = $field->value();
+			if (preg_match('/^-\n/', $val)) {
+				return JsonApiUtil::structureToJson($field->toStructure());
+			} else {
+				return $val;
+			}
 		};
 	}
 }
