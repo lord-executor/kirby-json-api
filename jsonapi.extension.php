@@ -20,10 +20,22 @@ if (c::get('jsonapi.built-in.enabled', false))
 		$auth = Lar\JsonApi\JsonApiAuth::isAdmin();
 	}
 
+	$lang = c::get('jsonapi.built-in.lang', null);
+
+	if (is_callable($lang))
+	{
+		$lang = $lang();
+	}
+	else if ($lang !== false)
+	{
+		$lang = Lar\JsonApi\JsonApiLang::fromQuery();
+	}
+
 	jsonapi()->register([
 		// api/page/_id_
 		[
 			'auth' => $auth,
+			'lang' => $lang,
 			'method' => 'GET',
 			'pattern' => "page/(:all)",
 			'controller' => 'Lar\JsonApi\JsonApiController',
@@ -32,6 +44,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 		// api/child-ids/_id_
 		[
 			'auth' => $auth,
+			'lang' => $lang,
 			'method' => 'GET',
 			'pattern' => "child-ids/(:all)",
 			'controller' => 'Lar\JsonApi\JsonApiController',
@@ -40,6 +53,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 		// api/children/_id_
 		[
 			'auth' => $auth,
+			'lang' => $lang,
 			'method' => 'GET',
 			'pattern' => "children/(:all)",
 			'controller' => 'Lar\JsonApi\JsonApiController',
@@ -48,6 +62,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 		// api/files/_id_
 		[
 			'auth' => $auth,
+			'lang' => $lang,
 			'method' => 'GET',
 			'pattern' => "files/(:all)",
 			'controller' => 'Lar\JsonApi\JsonApiController',
@@ -56,6 +71,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 		// api/node/_id_
 		[
 			'auth' => $auth,
+			'lang' => $lang,
 			'method' => 'GET',
 			'pattern' => "node/(:all)",
 			'controller' => 'Lar\JsonApi\JsonApiController',
@@ -64,6 +80,7 @@ if (c::get('jsonapi.built-in.enabled', false))
 		// api/tree/_id_
 		[
 			'auth' => $auth,
+			'lang' => $lang,
 			'method' => 'GET',
 			'pattern' => "tree/(:all)",
 			'controller' => 'Lar\JsonApi\JsonApiController',

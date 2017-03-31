@@ -99,6 +99,17 @@ If the automatic detection and processing of structured fields causes problems f
 c::set('jsonapi.auto-structured', false);
 ```
 
+### Setting the Language Handler
+The built-in API normally uses the global default language handler which determines the language from the `lang` query string parameter. You can change this by with the following configuration.
+
+```php
+// Obviously this is not a particularly useful language handler since it always returns NULL
+// and therefore will cause the language selection to fall back to the site's default language.
+c::set('jsonapi.built-in.lang', function () { return NULL; });
+```
+
+For more details on the available options, see the [Language](#language) section.
+
 ## Built-In API Features
 
 ### Pages, Nodes and Trees
@@ -222,6 +233,9 @@ Note that structured fields are always an **array** of items, so the generated o
 }
 ```
 
+### Multi-Language Sites
+The API manager is the component that is in charge of invoking the API controllers. It is aware of multi-language sites and sets the language based on the `lang` query string parameter by default.
+
 
 # Custom API Extensions
 Getting started with a custom API is really quite straight forward. All you need is a Kirby plugin (that can be an existing plugin or a new one) where you can create a file called `jsonapi.extension.php`. The JSON API plugin looks for files with that name during its initialization and loads them automatically. In this extension file, you can now simply declare your API like this
@@ -293,7 +307,25 @@ The JSON API plugin provides the following predefined authorization handlers (se
 ```
 
 ## Language
-Language handling for APIs can be quite tricky, so like everything else, this aspect is customizable. Adding the `lang` option to your routes allows you to specify a language selection handler which receives the same arguments as the controller and returns the language code of the language that will be used to fetch data from Kirby.
+Language handling for APIs can be quite tricky, so like everything else, this aspect is customizable. Adding the `lang` option to your routes allows you to specify a language selection handler which receives the same arguments as the controller and returns the language that will be used to fetch data from Kirby.
+
+If you don't specify anything else, the default language handler `Lar\JsonApi\JsonApiLang::fromQuery()` will be used; it determines the language through the `lang` query string parameter. If it matches one of the configured languages, that language will be used.
+
+The JSON API comes with the following language handler implementations:
+* `Lar\JsonApi\JsonApiLang::fromQuery($name = 'lang')`: returns a language handler which tries to pick the language based on the language code provided in the query string parameter with the given `$name`.
+* `̀Lar\JsonApi\JsonApiLang::fromPathSegment($index = 1)`: returns a language handler which uses the URI path segment at `$index` as the language code. This can also be a negative number, in which case the path segments are counted from the back.
+
+**Example for Language by Path Segment**
+```php
+[
+	// ...
+	'method' => 'GET',
+    'pattern' => "(:any)/my-api",
+	'lang' => \Lar\JsonApi\JsonApiLang::fromPathSegment(),
+	// ...
+]
+```
+If this API is called with the URL `/api/de/my-api`, then all page contend will be retrieved in German - provided that German is configured as one of the site languages.
 
 Besides a callback, the `lang` option can also be one of the following strings:
 * `session` (default): The session's current browsing language. See https://getkirby.com/docs/cheatsheet/site/session-language.

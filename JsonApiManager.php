@@ -68,7 +68,7 @@ class JsonApiManager
 			$args = func_get_args();
 			$site = site();
 
-			if (isset($site->language))
+			if (isset($site->language) && !empty($lang))
 			{
 				// make sure to set the site language for this request according to the 'lang'
 				// action setting, otherwise everything will be returned in the default language
