@@ -2,6 +2,8 @@
 
 namespace Lar\JsonApi;
 
+use \C;
+
 
 class PageField extends JsonField
 {
@@ -21,7 +23,7 @@ class PageField extends JsonField
 	{
 		return function ($field) {
 			$val = $field->value();
-			if (preg_match('/^-\n/', $val)) {
+			if (C::get('jsonapi.auto-structured', true) && preg_match('/^-\n/', $val)) {
 				return JsonApiUtil::structureToJson($field->toStructure());
 			} else {
 				return $val;
