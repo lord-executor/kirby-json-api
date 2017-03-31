@@ -92,6 +92,13 @@ c::set('jsonapi.prefix', 'myapi');
 
 All the examples below assume the default prefix `api`.
 
+### Disabling Autodetection of Strucutred Fields
+If the automatic detection and processing of structured fields causes problems for you, this can be disabled with:
+
+```php
+c::set('jsonapi.auto-structured', false);
+```
+
 ## Built-In API Features
 
 ### Pages, Nodes and Trees
@@ -184,6 +191,37 @@ Every addition to the basic `page` information is also available as a separate A
 * `[prefix]/child-ids/[id]`: Returns an array of child IDs of the given page.
 * `[prefix]/children/[id]`: Returns an array of child pages of the given page including all of their fields (non-recursive).
 * `[prefix]/files/[id]`: Returns an array of all files associated with the given page.
+
+### Structured Fields
+As of v-1.1.0, there is a feature that tries to automatically detect structured fields (based on whether it _looks_ like a YAML document) and converts them to JSON objects as well.
+
+Note that structured fields are always an **array** of items, so the generated output looks something like this
+```json
+{
+	"id": "root\/child-one",
+	"url": "http:\/\/localhost:8080\/root\/child-one",
+	"uid": "child-one",
+	"title": "Child One",
+	"text": "This is the first child",
+	"value": "42.1",
+	"nextnode": "root",
+	"structured": [
+		{
+			"title": "My Title",
+			"message": "..."
+		},
+		{
+			"title": "Sub-Item 2",
+			"message": "..."
+		},
+		{
+			"title": "Last",
+			"message": "..."
+		}
+	]
+}
+```
+
 
 # Custom API Extensions
 Getting started with a custom API is really quite straight forward. All you need is a Kirby plugin (that can be an existing plugin or a new one) where you can create a file called `jsonapi.extension.php`. The JSON API plugin looks for files with that name during its initialization and loads them automatically. In this extension file, you can now simply declare your API like this
