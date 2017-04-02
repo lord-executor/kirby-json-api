@@ -1,6 +1,23 @@
 # JSON API Plugin
 The Kirby JSON API plugin is a fairly simple layer on top of the existing Kirby infrastructure that provides a language-aware, read-only (for now) JSON API to access the content tree from JavaScript and other external clients. It also provides some basic functionality for developers to easily add their own JSON-based APIs.
 
+## Table of Contents
+* [Installation](#installation)
+* [Who Should Use This?](#who-should-use-this)
+* [Built-In API](#built-in-api)
+  * [Configuring the Built-In API](#configuring-the-built-in-api)
+  * [Built-In API Features](#built-in-api-features)
+* [Custom API Extensions](#custom-api-extensions)
+  * [Registering Routes](#registering-routes)
+  * [Actions](#actions)
+  * [Authentication](#authentication)
+  * [Language](#language)
+  * [Working with Pages](#working-with-pages)
+* [Using the API from JavaScript](#using-the-api-from-javascript)
+  * [Exposing some Kirby to JavaScript](#exposing-some-kirby-to-javascript)
+* [Examples](#examples)
+* [Sponsors](#sponsors)
+
 ## Installation
 
 ### Using the KirbyCLI
@@ -43,16 +60,22 @@ If you answered any of the above questions with "yes", then this plugin is likel
 > **Note**: The built-in API is disabled by default and has to be enabled first in the Kirby configuration as described below.
 
 ## Configuring the Built-In API
+**Note:** Configuring handler functions for the built-in API (namely the `jsonapi.built-in.auth` and `jsonapi.built-in.lang` handlers) works differently from setting the same handlers directly on custom API routes.
+
+Since most classes are not yet loaded when the configuration file is being executed, you can't actually use any of the classes provided by the JSON API or other plugins directly.
+You can however use **factory functions** to do this. A factory function is just a function that returns the actual handler.
+Since the factory function is executed when the built-in API is being initialized, all classes from the JSON API are available in the factory function body.
 
 ### Enabling the API
 To enable the built-in API, add the following to your Kirby configuration. The built-in API is disabled by default as a security measure. You should only enable it if you actually need it and if you do, you should make sure to check out the remaining security configuration options.
 ```php
 c::set('jsonapi.built-in.enabled', true);
 ```
+
 ### Authentication and Authorization
 Once enabled, the built-in API is only available to the logged-in Kirby admin - again, primarily for security.
 
-To make the API available to all logged-in users, you can set the configuration as follows:
+To make the API available to all logged-in users, you can use a **factory** function to set the configuration as follows:
 ```php
 c::set('jsonapi.built-in.auth', function () {
 	return Lar\JsonApi\JsonApiAuth::isLoggedIn();
@@ -66,6 +89,16 @@ c::set('jsonapi.built-in.auth', false);
 
 There are plenty more authentication options available (those are described below) and you can also implement your own. Be aware that the _configuration_ option `jsonapi.built-in.auth` expects an _authentication provider_ function - that is a function that returns the actual authentication function. This is to work around the bootstrapping issue where the plugin providing the authentication function isn't actually loaded yet. The _provider_ function is invoked when the built-in API is registered, at which point all the functionality of the JSON API plugin are available.
 
+### Setting the Language Handler
+The built-in API normally uses the global default language handler which determines the language from the `lang` query string parameter.
+You can change this by providing your own **factory function** that returns a language handler.
+
+```php
+c::set('jsonapi.built-in.lang', function () { return Lar\JsonApi\JsonApiLang::fromPathSegment(); });
+```
+
+For more details on the available options, see the [Language](#language) section.
+
 ### API Path Prefix
 All registered API controllers are made available under **one** path prefix that defaults to `api`, so all registered URL patterns are automatically prefixed with this value. You can of course change this prefix in the configuration:
 
@@ -74,6 +107,13 @@ c::set('jsonapi.prefix', 'myapi');
 ```
 
 All the examples below assume the default prefix `api`.
+
+### Disabling Autodetection of Strucutred Fields
+If the automatic detection and processing of structured fields causes problems for you, this can be disabled with:
+
+```php
+c::set('jsonapi.auto-structured', false);
+```
 
 ## Built-In API Features
 
@@ -168,6 +208,40 @@ Every addition to the basic `page` information is also available as a separate A
 * `[prefix]/children/[id]`: Returns an array of child pages of the given page including all of their fields (non-recursive).
 * `[prefix]/files/[id]`: Returns an array of all files associated with the given page.
 
+### Structured Fields
+As of v-1.1.0, there is a feature that tries to automatically detect structured fields (based on whether it _looks_ like a YAML document) and converts them to JSON objects as well.
+
+Note that structured fields are always an **array** of items, so the generated output looks something like this
+```json
+{
+	"id": "root\/child-one",
+	"url": "http:\/\/localhost:8080\/root\/child-one",
+	"uid": "child-one",
+	"title": "Child One",
+	"text": "This is the first child",
+	"value": "42.1",
+	"nextnode": "root",
+	"structured": [
+		{
+			"title": "My Title",
+			"message": "..."
+		},
+		{
+			"title": "Sub-Item 2",
+			"message": "..."
+		},
+		{
+			"title": "Last",
+			"message": "..."
+		}
+	]
+}
+```
+
+### Multi-Language Sites
+The API manager is the component that is in charge of invoking the API controllers. It is aware of multi-language sites and sets the language based on the `lang` query string parameter by default.
+
+
 # Custom API Extensions
 Getting started with a custom API is really quite straight forward. All you need is a Kirby plugin (that can be an existing plugin or a new one) where you can create a file called `jsonapi.extension.php`. The JSON API plugin looks for files with that name during its initialization and loads them automatically. In this extension file, you can now simply declare your API like this
 
@@ -238,7 +312,25 @@ The JSON API plugin provides the following predefined authorization handlers (se
 ```
 
 ## Language
-Language handling for APIs can be quite tricky, so like everything else, this aspect is customizable. Adding the `lang` option to your routes allows you to specify a language selection handler which receives the same arguments as the controller and returns the language code of the language that will be used to fetch data from Kirby.
+Language handling for APIs can be quite tricky, so like everything else, this aspect is customizable. Adding the `lang` option to your routes allows you to specify a language selection handler which receives the same arguments as the controller and returns the language that will be used to fetch data from Kirby.
+
+If you don't specify anything else, the default language handler `Lar\JsonApi\JsonApiLang::fromQuery()` will be used; it determines the language through the `lang` query string parameter. If it matches one of the configured languages, that language will be used.
+
+The JSON API comes with the following language handler implementations:
+* `Lar\JsonApi\JsonApiLang::fromQuery($name = 'lang')`: returns a language handler which tries to pick the language based on the language code provided in the query string parameter with the given `$name`.
+* `̀Lar\JsonApi\JsonApiLang::fromPathSegment($index = 1)`: returns a language handler which uses the URI path segment at `$index` as the language code. This can also be a negative number, in which case the path segments are counted from the back.
+
+**Example for Language by Path Segment**
+```php
+[
+	// ...
+	'method' => 'GET',
+    'pattern' => "(:any)/my-api",
+	'lang' => \Lar\JsonApi\JsonApiLang::fromPathSegment(),
+	// ...
+]
+```
+If this API is called with the URL `/api/de/my-api`, then all page contend will be retrieved in German - provided that German is configured as one of the site languages.
 
 Besides a callback, the `lang` option can also be one of the following strings:
 * `session` (default): The session's current browsing language. See https://getkirby.com/docs/cheatsheet/site/session-language.
@@ -289,6 +381,47 @@ return JsonApiUtil::pageToJson($myPage)
 The `$extractorFn` receives the collection's `$field` definition as its argument. In the case of a Kirby page that has been converted to a JSON list/field collection, that definition is the field instance. This means that all the [Kirby Field Methods](https://getkirby.com/docs/cheatsheet#field-methods) are available to you.
 
 When one of these functions is called on a list collection, then the mapping or selection is applied to all field collections in that list (non-recursively).
+
+# Using the API from JavaScript
+Usually you'll want to access the API from _somewhere_, that somewhere likely being JavaScript code. One of the first problems you'll likely run into is that of figuring out the right URLs for your API calls.
+* Relative URLs are kinda clunky and not to be recommended in this situation
+* Absolute paths make an assumption that your Kirby site is hosted under a specific path and may break with different environemtns
+* Full URIs are even more specific and will break if you have a test environment
+
+## Exposing some Kirby to JavaScript
+A good practice is to simply expose some of Kirby's settings to JavaScript in an easy-to-digest format like a JavaScript object. Add the following snippet to your main HTML header snippet - most Kirby pages tend to have one of those; the snippet should be included in all of your templates.
+
+```html
+<script type="text/javascript">
+    /**
+     * Kirby JavaScript settings object. It contains settings and functions that JavaScript code
+     * potentially needs to know about when dealing with Kirby
+     */
+    window.Kirby = {
+        lang: '<?php echo $site->language()->code(); ?>',
+        apiPrefix: '<?php echo c::get('jsonapi.prefix', 'api'); ?>',
+        baseUrl: '<?php echo $site->url(); ?>',
+        langUrl: '<?php echo $site->language()->url(); ?>',
+        url: function (path) {
+            return this.baseUrl + (path && path[0] === '/' ? path : '/' + path);
+        },
+        pageUrl: function (path) {
+            return this.langUrl + (path && path[0] === '/' ? path : '/' + path);
+        },
+        apiUrl: function (path) {
+            var url = this.baseUrl + '/' + this.apiPrefix + (path && path[0] === '/' ? path : '/' + path);
+            url += (url.indexOf('?') < 0 ? '?' : '&') + 'lang=' + this.lang;
+            return url;
+        },
+    };
+</script>
+```
+
+With this, it is now trivial to access your API without having to worry about the path your Kirby instance is hosted under, the configured API prefix or the language. Just use the `apiUrl` function of the new Kirby object to build your actual URL like so:
+
+```javascript
+$.get(Kirby.apiUrl('/my/path')).then(...);
+```
 
 # Examples
 
@@ -362,3 +495,9 @@ jsonapi()->register([
 	],
 ]);
 ```
+
+# Sponsors
+
+![getunik.com Logo](http://getunik.com/themes/img/gu_logo.svg "getunik.com Logo")
+
+Development of this plugin was partially sponsored by [getunik.com](http://getunik.com/)

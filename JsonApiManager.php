@@ -18,10 +18,12 @@ class JsonApiManager
 
 
 	protected $prefix;
+	protected $defaultLang;
 
 	public function __construct()
 	{
 		$this->prefix = c::get('jsonapi.prefix', 'api');
+		$this->defaultLang = JsonApiLang::fromQuery();
 	}
 
 	public function register($actions)
@@ -32,7 +34,7 @@ class JsonApiManager
 			$apiRoutes[] = [
 				'method' => a::get($action, 'method', 'GET'),
 				'pattern' => $this->prefix . '/' . a::get($action, 'pattern'),
-				'action' => $this->dispatch(a::get($action, 'auth'), a::get($action, 'controller'), a::get($action, 'action'), a::get($action, 'lang', 'session')),
+				'action' => $this->dispatch(a::get($action, 'auth'), a::get($action, 'controller'), a::get($action, 'action'), a::get($action, 'lang', $this->defaultLang)),
 			];
 		}
 
@@ -66,11 +68,14 @@ class JsonApiManager
 			$args = func_get_args();
 			$site = site();
 
-			if (isset($site->language))
+			if (isset($site->language) && !empty($lang))
 			{
 				// make sure to set the site language for this request according to the 'lang'
 				// action setting, otherwise everything will be returned in the default language
 				$site->language = is_callable($lang) ? call_user_func_array($lang, $args) : $site->{$lang . 'Language'}();
+				if ($site->language === NULL) {
+					$site->language = $site->defaultLanguage();
+				}
 			}
 
 			if (!$manager->authenticate($auth, $args))
