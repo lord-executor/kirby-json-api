@@ -60,16 +60,22 @@ If you answered any of the above questions with "yes", then this plugin is likel
 > **Note**: The built-in API is disabled by default and has to be enabled first in the Kirby configuration as described below.
 
 ## Configuring the Built-In API
+**Note:** Configuring handler functions for the built-in API (namely the `jsonapi.built-in.auth` and `jsonapi.built-in.lang` handlers) works differently from setting the same handlers directly on custom API routes.
+
+Since most classes are not yet loaded when the configuration file is being executed, you can't actually use any of the classes provided by the JSON API or other plugins directly.
+You can however use **factory functions** to do this. A factory function is just a function that returns the actual handler.
+Since the factory function is executed when the built-in API is being initialized, all classes from the JSON API are available in the factory function body.
 
 ### Enabling the API
 To enable the built-in API, add the following to your Kirby configuration. The built-in API is disabled by default as a security measure. You should only enable it if you actually need it and if you do, you should make sure to check out the remaining security configuration options.
 ```php
 c::set('jsonapi.built-in.enabled', true);
 ```
+
 ### Authentication and Authorization
 Once enabled, the built-in API is only available to the logged-in Kirby admin - again, primarily for security.
 
-To make the API available to all logged-in users, you can set the configuration as follows:
+To make the API available to all logged-in users, you can use a **factory** function to set the configuration as follows:
 ```php
 c::set('jsonapi.built-in.auth', function () {
 	return Lar\JsonApi\JsonApiAuth::isLoggedIn();
@@ -82,6 +88,16 @@ c::set('jsonapi.built-in.auth', false);
 ```
 
 There are plenty more authentication options available (those are described below) and you can also implement your own. Be aware that the _configuration_ option `jsonapi.built-in.auth` expects an _authentication provider_ function - that is a function that returns the actual authentication function. This is to work around the bootstrapping issue where the plugin providing the authentication function isn't actually loaded yet. The _provider_ function is invoked when the built-in API is registered, at which point all the functionality of the JSON API plugin are available.
+
+### Setting the Language Handler
+The built-in API normally uses the global default language handler which determines the language from the `lang` query string parameter.
+You can change this by providing your own **factory function** that returns a language handler.
+
+```php
+c::set('jsonapi.built-in.lang', function () { return Lar\JsonApi\JsonApiLang::fromPathSegment(); });
+```
+
+For more details on the available options, see the [Language](#language) section.
 
 ### API Path Prefix
 All registered API controllers are made available under **one** path prefix that defaults to `api`, so all registered URL patterns are automatically prefixed with this value. You can of course change this prefix in the configuration:
@@ -98,17 +114,6 @@ If the automatic detection and processing of structured fields causes problems f
 ```php
 c::set('jsonapi.auto-structured', false);
 ```
-
-### Setting the Language Handler
-The built-in API normally uses the global default language handler which determines the language from the `lang` query string parameter. You can change this by with the following configuration.
-
-```php
-// Obviously this is not a particularly useful language handler since it always returns NULL
-// and therefore will cause the language selection to fall back to the site's default language.
-c::set('jsonapi.built-in.lang', function () { return NULL; });
-```
-
-For more details on the available options, see the [Language](#language) section.
 
 ## Built-In API Features
 
@@ -388,23 +393,34 @@ A good practice is to simply expose some of Kirby's settings to JavaScript in an
 
 ```html
 <script type="text/javascript">
-	/**
-	 * Kirby JavaScript settings object. It contains settings and functions that JavaScript code
-	 * potentially needs to know about when dealing with Kirby
-	 */
-	window.Kirby = {
-		baseUrl: '<?php echo $site->url() ?>',
-		url: function (path) {
-			return this.baseUrl + (path && path[0] === '/' ? path : '/' + path);
-		},
-	};
+    /**
+     * Kirby JavaScript settings object. It contains settings and functions that JavaScript code
+     * potentially needs to know about when dealing with Kirby
+     */
+    window.Kirby = {
+        lang: '<?php echo $site->language()->code(); ?>',
+        apiPrefix: '<?php echo c::get('jsonapi.prefix', 'api'); ?>',
+        baseUrl: '<?php echo $site->url(); ?>',
+        langUrl: '<?php echo $site->language()->url(); ?>',
+        url: function (path) {
+            return this.baseUrl + (path && path[0] === '/' ? path : '/' + path);
+        },
+        pageUrl: function (path) {
+            return this.langUrl + (path && path[0] === '/' ? path : '/' + path);
+        },
+        apiUrl: function (path) {
+            var url = this.baseUrl + '/' + this.apiPrefix + (path && path[0] === '/' ? path : '/' + path);
+            url += (url.indexOf('?') < 0 ? '?' : '&') + 'lang=' + this.lang;
+            return url;
+        },
+    };
 </script>
 ```
 
-With this, it is now trivial to access your API without having to worry about the path your Kirby instance is hosted under. Just use the `url` function of the new Kirby object to build your actual URL like so:
+With this, it is now trivial to access your API without having to worry about the path your Kirby instance is hosted under, the configured API prefix or the language. Just use the `apiUrl` function of the new Kirby object to build your actual URL like so:
 
 ```javascript
-$.get(Kirby.url('/api/my/path')).then(...);
+$.get(Kirby.apiUrl('/my/path')).then(...);
 ```
 
 # Examples
