@@ -169,7 +169,7 @@ Example of the result returned by a call to the `node` API with `/api/node/proje
 }
 ```
 
-Example of the result returned by a call to the `tree` API with `/api/page/projects`
+Example of the result returned by a call to the `tree` API with `/api/tree/projects`
 ```json
 {
 	"id": "projects",
